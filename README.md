@@ -2,8 +2,14 @@ word_automaton
 ==============
 
 1. Clone repo
-    > git clone git@github.com:stack-overflow/word_automaton.git
+```
+git clone git@github.com:stack-overflow/word_automaton.git
+```
 2. Build
-    > make
+```
+make
+```
 3. Run
-    > ./automaton.out
+```
+./automaton.out
+```
