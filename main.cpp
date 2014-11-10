@@ -124,8 +124,6 @@ int main(int argc, char *argv[]) {
     std::ios::ios_base::sync_with_stdio(false);
     const char *in_filename = "test.txt";
 
-    std::string test_str = "This is a test, so please, be cool! Ok?";
-
     if (argc > 1) {
         in_filename = argv[1];
     }
