@@ -6,6 +6,7 @@
 #include <iterator>
 #include <functional>
 #include <algorithm>
+#include <deque>
 #include <sstream>
 
 std::string trim_begin(const std::string& str) {
@@ -18,7 +19,7 @@ std::string trim_end(const std::string& str) {
     return str.substr(0, std::distance(str.begin(), alpha));
 }
 
-std::vector<std::string> extract_words(const std::string& str) {
+std::vector<std::string> str_split_whitespace(const std::string& str) {
     std::vector<std::string> words;
     std::istringstream is(str);
     std::copy(
@@ -28,10 +29,37 @@ std::vector<std::string> extract_words(const std::string& str) {
     return words;
 }
 
+std::vector<std::string> str_split(const std::string& str, const char *delims) {
+    size_t found = std::string::npos, prev = 0;
+    std::vector<std::string> out;
+    out.reserve(log(str.size()));
+
+    found = str.find_first_of(delims);
+    while (found != std::string::npos) {
+        if (prev < found) {
+            out.push_back(str.substr(prev, found - prev));
+        }
+        prev = found + 1;
+        found = str.find_first_of(delims, prev);
+    }
+    out.push_back(str.substr(prev, std::string::npos));
+
+    return out;
+}
+
+std::vector<std::string> extract_sentences(const std::string& str) {
+    return str_split(str, ".?!");
+}
+
+std::vector<std::string> extract_words(const std::string& str) {
+    return str_split(str, " .,;\"'?!");
+}
+
 class sentence_file_reader {
     std::ifstream ifs;
+    std::deque<std::string> sentence_buffer;
     static const size_t BUFFER_SIZE = 16 * 1024;
-    char buff[BUFFER_SIZE];
+    char char_buffer[BUFFER_SIZE];
 
 public:
     sentence_file_reader(const char *filename) :
@@ -43,11 +71,21 @@ public:
     }
 
     std::string get_next_sentence() {
-        ifs.getline(buff, BUFFER_SIZE, '.');
-        return trim_begin(trim_end(buff));
+        std::string sn;
+        if (!sentence_buffer.empty()) {
+            sn = sentence_buffer.front();
+            sentence_buffer.pop_front();
+        }
+        else {
+            ifs.getline(char_buffer, BUFFER_SIZE);
+            auto sentences = extract_sentences(char_buffer);
+            sentence_buffer = std::deque<std::string>(std::begin(sentences), std::end(sentences));
+            sn = get_next_sentence();
+        }
+        return trim_begin(trim_end(sn));
     }
     bool has_more() {
-        return ifs.good();
+        return ifs.good() || !sentence_buffer.empty();
     }
 };
 
@@ -82,14 +120,18 @@ struct word_graph {
     }
 };
 
-int main() {
+int main(int argc, char *argv[]) {
     std::ios::ios_base::sync_with_stdio(false);
+    const char *in_filename = "test.txt";
 
-    std::cout << "Hello World!\n";
+    std::string test_str = "This is a test, so please, be cool! Ok?";
+
+    if (argc > 1) {
+        in_filename = argv[1];
+    }
+    sentence_file_reader cfr(in_filename);
 
     word_graph graph;
-
-    sentence_file_reader cfr("test.txt");
     std::string str;
     while (cfr.has_more()) {
         std::string sentence = cfr.get_next_sentence();
