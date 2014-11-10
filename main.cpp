@@ -19,6 +19,12 @@ std::string trim_end(const std::string& str) {
     return str.substr(0, std::distance(str.begin(), alpha));
 }
 
+std::string str_to_lower(const std::string& str) {
+    std::string lowercase;
+    std::transform(std::begin(str), std::end(str), std::back_inserter(lowercase), ::tolower);
+    return lowercase;
+}
+
 std::vector<std::string> str_split_whitespace(const std::string& str) {
     std::vector<std::string> words;
     std::istringstream is(str);
@@ -52,7 +58,7 @@ std::vector<std::string> extract_sentences(const std::string& str) {
 }
 
 std::vector<std::string> extract_words(const std::string& str) {
-    return str_split(str, " .,;\"'?!");
+    return str_split(str, " .,;\"?!");
 }
 
 class sentence_file_reader {
@@ -91,10 +97,12 @@ public:
 
 struct word_node {
     word_node(const std::string& name) :
-    word_name(name)
+    original_name(name),
+    normalized_name(str_to_lower(name))
     {}
 
-    std::string word_name;
+    std::string original_name;
+    std::string normalized_name;
     std::map<word_node*, size_t> lefts;
     std::map<word_node*, size_t> rights;
 };
@@ -104,10 +112,11 @@ struct word_graph {
     word_node *head;
 
     word_node *get_or_create(std::string name) {
-        auto name_exists = word_nodes.equal_range(name);
+        auto word = str_to_lower(name);
+        auto name_exists = word_nodes.equal_range(word);
         if (name_exists.first == name_exists.second) {
             word_node *name_node = new word_node(name);
-            return word_nodes.insert(name_exists.second, std::make_pair(name, name_node))->second;
+            return word_nodes.insert(name_exists.second, std::make_pair(word, name_node))->second;
         }
         return name_exists.first->second;
     }
@@ -146,11 +155,11 @@ int main(int argc, char *argv[]) {
     for (auto &kv : graph.word_nodes) {
         std::cout << kv.first << "\n- left: ";
         for (auto &w_node_cnt : kv.second->lefts) {
-            std::cout << w_node_cnt.first->word_name << ":" << w_node_cnt.second << " ";
+            std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
         }
         std::cout << "\n- right: ";
         for (auto &w_node_cnt : kv.second->rights) {
-            std::cout << w_node_cnt.first->word_name << ":" << w_node_cnt.second << " ";
+            std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
         }
         std::cout << std::endl;
     }
