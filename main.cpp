@@ -53,12 +53,12 @@ public:
 
 struct word_node {
     word_node(const std::string& name) :
-        word_name(name)
+    word_name(name)
     {}
 
     std::string word_name;
-    std::vector<word_node*> lefts;
-    std::vector<word_node*> rights;
+    std::map<word_node*, size_t> lefts;
+    std::map<word_node*, size_t> rights;
 };
 
 struct word_graph {
@@ -77,8 +77,8 @@ struct word_graph {
     void make_link(const std::string& a, const std::string& b) {
         word_node *a_node = get_or_create(a);
         word_node *b_node = get_or_create(b);
-        a_node->rights.push_back(b_node);
-        b_node->lefts.push_back(a_node);
+        a_node->rights[b_node]++;
+        b_node->lefts[a_node]++;
     }
 };
 
@@ -97,7 +97,7 @@ int main() {
 
         if (words.size() > 1) {
             graph.make_link(words[0], words[1]);
-            for (size_t i = 1, j = 2; j < words.size(); ++j) {
+            for (size_t i = 1, j = 2; j < words.size(); ++i, ++j) {
                 graph.make_link(words[i], words[j]);
             }
         }
@@ -105,12 +105,12 @@ int main() {
 
     for (auto &kv : graph.word_nodes) {
         std::cout << kv.first << "\n- left: ";
-        for (auto &w_node : kv.second->lefts) {
-            std::cout << w_node->word_name << " ";
+        for (auto &w_node_cnt : kv.second->lefts) {
+            std::cout << w_node_cnt.first->word_name << ":" << w_node_cnt.second << " ";
         }
         std::cout << "\n- right: ";
-        for (auto &w_node : kv.second->rights) {
-            std::cout << w_node->word_name << " ";
+        for (auto &w_node_cnt : kv.second->rights) {
+            std::cout << w_node_cnt.first->word_name << ":" << w_node_cnt.second << " ";
         }
         std::cout << std::endl;
     }
