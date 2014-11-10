@@ -97,11 +97,21 @@ public:
 
 struct word_node {
     word_node(const std::string& name) :
-    original_name(name),
     normalized_name(str_to_lower(name))
     {}
 
-    std::string original_name;
+    void add_original_name(const std::string& original) {
+        auto found = std::find(
+            std::begin(original_names),
+            std::end(original_names),
+            original);
+
+        if (found == original_names.end()) {
+            original_names.push_back(original);
+        }
+    }
+
+    std::vector<std::string> original_names;
     std::string normalized_name;
     std::map<word_node*, size_t> lefts;
     std::map<word_node*, size_t> rights;
@@ -114,11 +124,13 @@ struct word_graph {
     word_node *get_or_create(std::string name) {
         auto word = str_to_lower(name);
         auto name_exists = word_nodes.equal_range(word);
+        auto found_node = name_exists.first;
         if (name_exists.first == name_exists.second) {
             word_node *name_node = new word_node(name);
-            return word_nodes.insert(name_exists.second, std::make_pair(word, name_node))->second;
+            found_node = word_nodes.insert(name_exists.second, std::make_pair(word, name_node));
         }
-        return name_exists.first->second;
+        found_node->second->add_original_name(name);
+        return found_node->second;
     }
 
     void make_link(const std::string& a, const std::string& b) {
@@ -149,6 +161,9 @@ int main(int argc, char *argv[]) {
             for (size_t i = 1, j = 2; j < words.size(); ++i, ++j) {
                 graph.make_link(words[i], words[j]);
             }
+        }
+        else if (words.size() == 1 && !words[0].empty()) {
+            graph.get_or_create(words[0]);
         }
     }
 
