@@ -43,12 +43,16 @@ std::vector<std::string> str_split(const std::string& str, const char *delims) {
     found = str.find_first_of(delims);
     while (found != std::string::npos) {
         if (prev < found) {
-            out.push_back(str.substr(prev, found - prev));
+            auto sub = str.substr(prev, found - prev);
+            if (!sub.empty())
+                out.push_back(sub);
         }
         prev = found + 1;
         found = str.find_first_of(delims, prev);
     }
-    out.push_back(str.substr(prev, std::string::npos));
+    auto sub = str.substr(prev, std::string::npos);
+    if (!sub.empty())
+        out.push_back(sub);
 
     return out;
 }
@@ -58,7 +62,7 @@ std::vector<std::string> extract_sentences(const std::string& str) {
 }
 
 std::vector<std::string> extract_words(const std::string& str) {
-    return str_split(str, " .,;\"?!");
+    return str_split(str, " .,;\"?!\n");
 }
 
 class sentence_file_reader {
@@ -170,11 +174,11 @@ int main(int argc, char *argv[]) {
     for (auto &kv : graph.word_nodes) {
         std::cout << kv.first << "\n- left: ";
         for (auto &w_node_cnt : kv.second->lefts) {
-            std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
+            std::cout << "'" << w_node_cnt.first->normalized_name << "'" << ":" << w_node_cnt.second << " ";
         }
         std::cout << "\n- right: ";
         for (auto &w_node_cnt : kv.second->rights) {
-            std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
+            std::cout << "'" << w_node_cnt.first->normalized_name << "'" << ":" << w_node_cnt.second << " ";
         }
         std::cout << std::endl;
     }
