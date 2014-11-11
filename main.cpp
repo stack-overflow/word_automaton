@@ -101,7 +101,7 @@ public:
 
 struct word_node {
     word_node(const std::string& name) :
-    normalized_name(str_to_lower(name))
+			normalized_name(str_to_lower(name)), visited(false)
     {}
 
     void add_original_name(const std::string& original) {
@@ -119,6 +119,7 @@ struct word_node {
     std::string normalized_name;
     std::map<word_node*, size_t> lefts;
     std::map<word_node*, size_t> rights;
+		bool visited;
 };
 
 struct word_graph {
@@ -145,6 +146,20 @@ struct word_graph {
     }
 };
 
+void printSentences(word_node& node, const std::string& name, int superthreshold, int depth) {
+	bool wasVisites = node.visited;
+	node.visited = true;
+	for (auto &w_node_cnt : node.rights) {
+		if (w_node_cnt.second >= superthreshold && !wasVisites) {
+			printSentences(*w_node_cnt.first, name + " " + w_node_cnt.first->normalized_name, superthreshold, depth+1);
+		}
+		else if (depth > 1) {
+			std::cout << name + " " + w_node_cnt.first->normalized_name << "\n";
+		}
+	}
+}
+
+
 int main(int argc, char *argv[]) {
 	std::ios::ios_base::sync_with_stdio(false);
 	const char *in_filename = "test.txt";
@@ -170,7 +185,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	const int threshold = 3;
+	const int threshold = 5;
 
 	for (auto &kv : graph.word_nodes) {
 		bool wordprinted = false;
@@ -197,6 +212,14 @@ int main(int argc, char *argv[]) {
 		if (wordprinted) 
 			std::cout << "\n\n";
 	}
+
+	const int superthreshold = 10;
+
+	for (auto &kv : graph.word_nodes) {
+		printSentences(*kv.second, kv.first, superthreshold,0);
+	}
+
+	
 
 	return 0;
 }
