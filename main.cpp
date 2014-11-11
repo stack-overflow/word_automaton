@@ -101,7 +101,7 @@ public:
 
 struct word_node {
     word_node(const std::string& name) :
-			normalized_name(str_to_lower(name)), visited(false)
+    normalized_name(str_to_lower(name))
     {}
 
     void add_original_name(const std::string& original) {
@@ -119,7 +119,7 @@ struct word_node {
     std::string normalized_name;
     std::map<word_node*, size_t> lefts;
     std::map<word_node*, size_t> rights;
-		bool visited;
+    bool visited;
 };
 
 struct word_graph {
@@ -146,80 +146,89 @@ struct word_graph {
     }
 };
 
-void printSentences(word_node& node, const std::string& name, int superthreshold, int depth) {
-	bool wasVisites = node.visited;
-	node.visited = true;
-	for (auto &w_node_cnt : node.rights) {
-		if (w_node_cnt.second >= superthreshold && !wasVisites) {
-			printSentences(*w_node_cnt.first, name + " " + w_node_cnt.first->normalized_name, superthreshold, depth+1);
-		}
-		else if (depth > 1) {
-			std::cout << name + " " + w_node_cnt.first->normalized_name << "\n";
-		}
-	}
-}
-
+class sentence_printer {
+public:
+    void print(word_node *node, int superthreshold, int depth) {
+        node_visited.clear();
+        printSentences(node, node->normalized_name, superthreshold, depth);
+    }
+private:
+    void printSentences(word_node *node, const std::string& name, int superthreshold, int depth) {
+        bool wasVisites = node_visited[node];
+        node_visited[node] = true;
+        for (auto &w_node_cnt : node->rights) {
+            if (w_node_cnt.second >= superthreshold && !wasVisites) {
+                printSentences(w_node_cnt.first, name + " " + w_node_cnt.first->normalized_name, superthreshold, depth + 1);
+            }
+            else if (depth > 1) {
+                std::cout << name + " " + w_node_cnt.first->normalized_name << "\n";
+            }
+        }
+    }
+private:
+    std::map<word_node*, bool> node_visited;
+};
 
 int main(int argc, char *argv[]) {
-	std::ios::ios_base::sync_with_stdio(false);
-	const char *in_filename = "test.txt";
+    std::ios::ios_base::sync_with_stdio(false);
+    const char *in_filename = "test.txt";
 
-	if (argc > 1) {
-		in_filename = argv[1];
-	}
-	sentence_file_reader cfr(in_filename);
+    if (argc > 1) {
+        in_filename = argv[1];
+    }
+    sentence_file_reader cfr(in_filename);
 
-	word_graph graph;
-	std::string str;
-	while (cfr.has_more()) {
-		std::string sentence = cfr.get_next_sentence();
-		std::vector<std::string> words = extract_words(sentence);
+    word_graph graph;
+    std::string str;
+    while (cfr.has_more()) {
+        std::string sentence = cfr.get_next_sentence();
+        std::vector<std::string> words = extract_words(sentence);
 
-		if (words.size() > 1) {
-			graph.make_link(words[0], words[1]);
-			for (size_t i = 1, j = 2; j < words.size(); ++i, ++j) {
-				graph.make_link(words[i], words[j]);
-			}
-		} else if (words.size() == 1 && !words[0].empty()) {
-			graph.get_or_create(words[0]);
-		}
-	}
+        if (words.size() > 1) {
+            graph.make_link(words[0], words[1]);
+            for (size_t i = 1, j = 2; j < words.size(); ++i, ++j) {
+                graph.make_link(words[i], words[j]);
+            }
+        }
+        else if (words.size() == 1 && !words[0].empty()) {
+            graph.get_or_create(words[0]);
+        }
+    }
 
-	const int threshold = 5;
+    const int threshold = 5;
 
-	for (auto &kv : graph.word_nodes) {
-		bool wordprinted = false;
-		for (auto &w_node_cnt : kv.second->lefts) {
-			if (w_node_cnt.second >= threshold) {
-				if (!wordprinted) {
-					std::cout << kv.first << "\n- left: ";
-					wordprinted = true;
-				}
-				std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
-			}
-		}
-		if (wordprinted)
-			std::cout << "\n- right: ";
-		for (auto &w_node_cnt : kv.second->rights) {
-			if (w_node_cnt.second >= threshold) {
-				if (!wordprinted) {
-					std::cout << kv.first << "\n- right: ";
-					wordprinted = true;
-				}
-				std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
-			}
-		}
-		if (wordprinted) 
-			std::cout << "\n\n";
-	}
+    for (auto &kv : graph.word_nodes) {
+        bool wordprinted = false;
+        for (auto &w_node_cnt : kv.second->lefts) {
+            if (w_node_cnt.second >= threshold) {
+                if (!wordprinted) {
+                    std::cout << kv.first << "\n- left: ";
+                    wordprinted = true;
+                }
+                std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
+            }
+        }
+        if (wordprinted)
+            std::cout << "\n- right: ";
+        for (auto &w_node_cnt : kv.second->rights) {
+            if (w_node_cnt.second >= threshold) {
+                if (!wordprinted) {
+                    std::cout << kv.first << "\n- right: ";
+                    wordprinted = true;
+                }
+                std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
+            }
+        }
+        if (wordprinted)
+            std::cout << "\n\n";
+    }
 
-	const int superthreshold = 10;
+    const int superthreshold = 100;
 
-	for (auto &kv : graph.word_nodes) {
-		printSentences(*kv.second, kv.first, superthreshold,0);
-	}
+    sentence_printer printer;
+    for (auto &kv : graph.word_nodes) {
+        printer.print(kv.second, superthreshold, 0);
+    }
 
-	
-
-	return 0;
+    return 0;
 }
