@@ -44,15 +44,13 @@ std::vector<std::string> str_split(const std::string& str, const char *delims) {
     while (found != std::string::npos) {
         if (prev < found) {
             auto sub = str.substr(prev, found - prev);
-            if (!sub.empty())
-                out.push_back(sub);
+            out.push_back(sub);
         }
         prev = found + 1;
         found = str.find_first_of(delims, prev);
     }
     auto sub = str.substr(prev, std::string::npos);
-    if (!sub.empty())
-        out.push_back(sub);
+    if (!sub.empty()) out.push_back(sub);
 
     return out;
 }
