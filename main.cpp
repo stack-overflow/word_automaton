@@ -38,7 +38,7 @@ std::vector<std::string> str_split_whitespace(const std::string& str) {
 std::vector<std::string> str_split(const std::string& str, const char *delims) {
     size_t found = std::string::npos, prev = 0;
     std::vector<std::string> out;
-    out.reserve(log(str.size()));
+    out.reserve(static_cast<size_t>(log(str.size())));
 
     found = str.find_first_of(delims);
     while (found != std::string::npos) {
@@ -146,19 +146,14 @@ struct word_graph {
     }
 };
 
-class sentence_printer {
+struct sentence_print {
 public:
-    void print(word_node *node, int superthreshold, int depth) {
-        node_visited.clear();
-        printSentences(node, node->normalized_name, superthreshold, depth);
-    }
-private:
-    void printSentences(word_node *node, const std::string& name, int superthreshold, int depth) {
+    void operator ()(word_node *node, const std::string& name, size_t superthreshold, int depth) {
         bool wasVisites = node_visited[node];
         node_visited[node] = true;
         for (auto &w_node_cnt : node->rights) {
             if (w_node_cnt.second >= superthreshold && !wasVisites) {
-                printSentences(w_node_cnt.first, name + " " + w_node_cnt.first->normalized_name, superthreshold, depth + 1);
+                (*this)(w_node_cnt.first, name + " " + w_node_cnt.first->normalized_name, superthreshold, depth + 1);
             }
             else if (depth > 1) {
                 std::cout << name + " " + w_node_cnt.first->normalized_name << "\n";
@@ -225,9 +220,8 @@ int main(int argc, char *argv[]) {
 
     const int superthreshold = 100;
 
-    sentence_printer printer;
     for (auto &kv : graph.word_nodes) {
-        printer.print(kv.second, superthreshold, 0);
+        sentence_print()(kv.second, kv.second->normalized_name, superthreshold, 0);
     }
 
     return 0;
