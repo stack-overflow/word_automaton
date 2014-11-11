@@ -54,11 +54,11 @@ std::vector<std::string> str_split(const std::string& str, const char *delims) {
 }
 
 std::vector<std::string> extract_sentences(const std::string& str) {
-    return str_split(str, ".?!");
+    return str_split(str, ".?!\"");
 }
 
 std::vector<std::string> extract_words(const std::string& str) {
-    return str_split(str, " .,;\"?!");
+    return str_split(str, " .,;\"?!\n\r\"");
 }
 
 class sentence_file_reader {
@@ -142,42 +142,57 @@ struct word_graph {
 };
 
 int main(int argc, char *argv[]) {
-    std::ios::ios_base::sync_with_stdio(false);
-    const char *in_filename = "test.txt";
+	std::ios::ios_base::sync_with_stdio(false);
+	const char *in_filename = "test.txt";
 
-    if (argc > 1) {
-        in_filename = argv[1];
-    }
-    sentence_file_reader cfr(in_filename);
+	if (argc > 1) {
+		in_filename = argv[1];
+	}
+	sentence_file_reader cfr(in_filename);
 
-    word_graph graph;
-    std::string str;
-    while (cfr.has_more()) {
-        std::string sentence = cfr.get_next_sentence();
-        std::vector<std::string> words = extract_words(sentence);
+	word_graph graph;
+	std::string str;
+	while (cfr.has_more()) {
+		std::string sentence = cfr.get_next_sentence();
+		std::vector<std::string> words = extract_words(sentence);
 
-        if (words.size() > 1) {
-            graph.make_link(words[0], words[1]);
-            for (size_t i = 1, j = 2; j < words.size(); ++i, ++j) {
-                graph.make_link(words[i], words[j]);
-            }
-        }
-        else if (words.size() == 1 && !words[0].empty()) {
-            graph.get_or_create(words[0]);
-        }
-    }
+		if (words.size() > 1) {
+			graph.make_link(words[0], words[1]);
+			for (size_t i = 1, j = 2; j < words.size(); ++i, ++j) {
+				graph.make_link(words[i], words[j]);
+			}
+		} else if (words.size() == 1 && !words[0].empty()) {
+			graph.get_or_create(words[0]);
+		}
+	}
 
-    for (auto &kv : graph.word_nodes) {
-        std::cout << kv.first << "\n- left: ";
-        for (auto &w_node_cnt : kv.second->lefts) {
-            std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
-        }
-        std::cout << "\n- right: ";
-        for (auto &w_node_cnt : kv.second->rights) {
-            std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
-        }
-        std::cout << std::endl;
-    }
+	const int threshold = 3;
 
-    return 0;
+	for (auto &kv : graph.word_nodes) {
+		bool wordprinted = false;
+		for (auto &w_node_cnt : kv.second->lefts) {
+			if (w_node_cnt.second >= threshold) {
+				if (!wordprinted) {
+					std::cout << kv.first << "\n- left: ";
+					wordprinted = true;
+				}
+				std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
+			}
+		}
+		if (wordprinted)
+			std::cout << "\n- right: ";
+		for (auto &w_node_cnt : kv.second->rights) {
+			if (w_node_cnt.second >= threshold) {
+				if (!wordprinted) {
+					std::cout << kv.first << "\n- right: ";
+					wordprinted = true;
+				}
+				std::cout << w_node_cnt.first->normalized_name << ":" << w_node_cnt.second << " ";
+			}
+		}
+		if (wordprinted) 
+			std::cout << "\n\n";
+	}
+
+	return 0;
 }
