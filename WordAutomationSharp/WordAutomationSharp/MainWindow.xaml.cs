@@ -44,23 +44,23 @@ namespace WordAutomationSharp {
                 foreach (var n in kv.Value.Lefts){
                     if (n.Value >= threshold){
                         if (!wordprinted){
-                            Output.Text+=(kv.Key+"\n- left: ");
+                            Console.Out.Write(kv.Key + "\n- left: ");
                             wordprinted = true;
                         }
-                        Output.Text += (n.Key.NormalizedName + ":" + n.Value + " ");
+                        Console.Out.Write(n.Key.NormalizedName + ":" + n.Value + " ");
                     }
                 }
                 if(wordprinted)Console.Out.Write("\n- right: ");
                 foreach (var n in kv.Value.Rights){
                     if (n.Value >= threshold){
                         if (!wordprinted){
-                            Output.Text += (kv.Key + "\n- right: ");
+                            Console.Out.Write(kv.Key + "\n- right: ");
                             wordprinted = true;
                         }
-                        Output.Text += (n.Key.NormalizedName + ":" + n.Value + " ");
+                        Console.Out.Write(n.Key.NormalizedName + ":" + n.Value + " ");
                     }
                 }
-                if(wordprinted) Output.Text += ("\n\n");
+                if(wordprinted) Console.Out.Write("\n\n");
             }
             Output.UpdateLayout();
             var superthreshold = 100;

@@ -1,0 +1,22 @@
+this
+- left: is:1 
+- right: and:1 
+
+is
+- left: a:2 
+- right: this:1 
+
+a
+- left: test:1 cat:2 
+- right: is:2 
+
+test
+- right: a:1 
+
+and
+- left: this:1 
+- right: 
+
+cat
+- right: a:2 
+
