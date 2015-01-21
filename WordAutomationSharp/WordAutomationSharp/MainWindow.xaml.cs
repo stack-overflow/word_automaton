@@ -18,12 +18,21 @@ namespace WordAutomationSharp {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
+        void TextBoxWrite(String line)
+        {
+            this.OutputTextBox.Text += line;
+        }
+        void TextBoxWriteln(String line)
+        {
+            this.OutputTextBox.Text += line + "\n";
+        }
+        WordGraph graph;
         public MainWindow() {
             InitializeComponent();
 
             var file = "test.txt";
             var cfr = new SentenceFileReader(file);
-            var graph = new WordGraph();
+            this.graph = new WordGraph();
             var str = "";
             while (cfr.HasMore()){
                 var sentence = cfr.GetNextSentence();
@@ -44,29 +53,66 @@ namespace WordAutomationSharp {
                 foreach (var n in kv.Value.Lefts){
                     if (n.Value >= threshold){
                         if (!wordprinted){
-                            Console.Out.Write(kv.Key + "\n- left: ");
+                            TextBoxWrite(kv.Key + "\n- left: ");
                             wordprinted = true;
                         }
-                        Console.Out.Write(n.Key.NormalizedName + ":" + n.Value + " ");
+                        TextBoxWrite(n.Key.NormalizedName + ":" + n.Value + " ");
                     }
                 }
-                if(wordprinted)Console.Out.Write("\n- right: ");
+                if(wordprinted)TextBoxWrite("\n- right: ");
                 foreach (var n in kv.Value.Rights){
                     if (n.Value >= threshold){
                         if (!wordprinted){
-                            Console.Out.Write(kv.Key + "\n- right: ");
+                            TextBoxWrite(kv.Key + "\n- right: ");
                             wordprinted = true;
                         }
-                        Console.Out.Write(n.Key.NormalizedName + ":" + n.Value + " ");
+                        TextBoxWrite(n.Key.NormalizedName + ":" + n.Value + " ");
                     }
                 }
-                if(wordprinted) Console.Out.Write("\n\n");
+                if(wordprinted) TextBoxWrite("\n\n");
             }
-            Output.UpdateLayout();
+            OutputTextBox.UpdateLayout();
             var superthreshold = 100;
             var printer = new SentencePrinter();
             foreach (var kv in graph.WordNodes){
-              printer.Print(kv.Value, kv.Value.NormalizedName, superthreshold, 0);  
+              printer.Print(kv.Value, kv.Value.NormalizedName, superthreshold, 0, TextBoxWrite);
+            }
+        }
+
+        private void OutputTreeView_Loaded(object sender, RoutedEventArgs e)
+        {
+
+            foreach (var kv in this.graph.WordNodes)
+            {
+                TreeViewItem wordNode = new TreeViewItem();
+                wordNode.Header = kv.Value.NormalizedName;
+
+                TreeViewItem lefts = new TreeViewItem();
+                lefts.Header = "Left";
+                var sortedLefts = from entry in kv.Value.Lefts orderby entry.Value ascending select entry;
+                foreach (var item in sortedLefts)
+                {
+                    lefts.Items.Add(item.Key.NormalizedName + ":" + item.Value);
+
+                }
+                TreeViewItem rights = new TreeViewItem();
+                rights.Header = "Right";
+                var sortedRights = from entry in kv.Value.Rights orderby entry.Value ascending select entry;
+                foreach (var item in sortedRights)
+                {
+                    lefts.Items.Add(item.Key.NormalizedName + ":" + item.Value);
+
+                }
+                if (lefts.Items.Count > 0)
+                {
+                    wordNode.Items.Add(lefts);
+                }
+                if (rights.Items.Count > 0)
+                {
+                    wordNode.Items.Add(rights);
+                }
+                var tree = sender as TreeView;
+                tree.Items.Add(wordNode);
             }
         }
     }
