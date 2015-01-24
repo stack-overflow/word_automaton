@@ -140,12 +140,9 @@ namespace WordAutomationSharp
                 return;
             }
 
-            try
-            {
-                var word = words.Last();
-                if (word == "") word = words[words.Length - 2];
-                if (word == "") word = words[words.Length - 3];
-                var sortedRights = (from entry in graph.WordNodes[word].Rights orderby entry.Value ascending select entry.Key.NormalizedName).Take(5);
+            try{
+                var word = words.Last(s => s != "");
+                var sortedRights = (from entry in graph.WordNodes[word].Rights orderby entry.Value descending select entry.Key.NormalizedName).Take(5);
 
                 listBox1.Items.Clear();
                 foreach (var zord in sortedRights)
