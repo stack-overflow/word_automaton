@@ -28,8 +28,8 @@ namespace WordAutomationSharp {
         public void MakeLink(string a, string b){
             var aNode = GetOrCreate(a);
             var bNode = GetOrCreate(b);
-            try{aNode.Lefts[bNode]++;}catch(Exception e){aNode.Lefts.Add(bNode, 1);}
-            try{bNode.Rights[aNode]++;}catch(Exception e){bNode.Rights.Add(aNode, 1);}
+            try{aNode.Rights[bNode]++;}catch(Exception e){aNode.Rights.Add(bNode, 1);}
+            try{bNode.Lefts[aNode]++;}catch(Exception e){bNode.Lefts.Add(aNode, 1);}
         }
     }
 }

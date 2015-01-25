@@ -6,29 +6,39 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WordAutomationSharp {
-    public class SentenceFileReader : IDisposable{
-        private readonly StreamReader ifs;
+    public class SentenceFileReader{
+        //private readonly StreamReader ifs;
         private Queue<string> sentenceBuffer;
-
+        private string[] Lines;
+        private int currentLine;
         public SentenceFileReader(string filename){
-            ifs = new StreamReader(filename);
+            //ifs = new StreamReader(filename);
+            Lines = File.ReadAllLines(filename);
+            currentLine = 0;
             sentenceBuffer = new Queue<string>();
         }
 
-        public void Dispose(){
-            ifs.Close();
+        public string ReadLine(){
+            return Lines[currentLine++];
         }
 
         public string GetNextSentence(){
             if (sentenceBuffer.Count == 0){
-                var sentences = ifs.ReadLine().ExtractSentences();
+                var sentences = ReadLine().ExtractSentences();
                 foreach (var s in sentences) sentenceBuffer.Enqueue(s);
             }
-            return sentenceBuffer.Dequeue().Trim();
+            
+            if(sentenceBuffer.Count>0)
+                return sentenceBuffer.Dequeue().Trim();
+            return "";
         }
 
         public bool HasMore(){
-            return !ifs.EndOfStream || sentenceBuffer.Count > 0;
+            return currentLine < Lines.Length || sentenceBuffer.Count > 0;
+        }
+
+        public double GetProgress(){
+            return (double)currentLine/Lines.Length * 100.0;
         }
 
     }

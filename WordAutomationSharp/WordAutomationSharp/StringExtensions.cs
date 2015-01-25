@@ -12,11 +12,12 @@ namespace WordAutomationSharp{
         }
 
         public static string[] ExtractSentences(this string str) {
-            return str.Split(new []{'.','?','!','\"'});
+            return str.Split(new []{'.','?','!','\"'}, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public static string[] ExtractWords(this string str) {
-            return str.Split(new[]{' ', '.', ',', ';', '\"', '?', '!', '\n', '\r'});
+        public static string[] ExtractWords(this string str){
+            return str.Split(new[]{' ', '.', ',', ';', '\"', '?', '!', '\n', '\r', '(', ')'},
+                StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
