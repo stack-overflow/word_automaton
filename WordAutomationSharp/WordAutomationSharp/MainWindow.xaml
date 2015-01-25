@@ -4,7 +4,9 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <TextBlock Visibility="Collapsed" x:Name="OutputTextBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="299" Width="208"/>
-        <TreeView x:Name="OutputTreeView" Loaded="OutputTreeView_Loaded" HorizontalAlignment="Stretch" Height="Auto" Margin="12,32,150,70" VerticalAlignment="Stretch" Width="Auto"/>
+        <TreeView x:Name="OutputTreeView" Loaded="OutputTreeView_Loaded" HorizontalAlignment="Stretch" Height="Auto" Margin="12,32,150,70" VerticalAlignment="Stretch" Width="Auto"
+            VirtualizingStackPanel.IsVirtualizing="True"
+            VirtualizingStackPanel.VirtualizationMode="Recycling"/>
         <TextBox Height="23" HorizontalAlignment="Stretch" Margin="12,0,12,32" Name="textBox1" VerticalAlignment="Bottom" Width="Auto" TextChanged="textBox1_TextChanged" />
         <ListBox Height="Auto" HorizontalAlignment="Right" Margin="0,12,12,70" Name="listBox1" VerticalAlignment="Stretch" Width="132" />
         <ProgressBar x:Name="progress" Margin="12,0,12,12" VerticalAlignment="Bottom" Height="15"/>

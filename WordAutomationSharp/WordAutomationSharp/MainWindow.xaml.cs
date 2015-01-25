@@ -69,8 +69,13 @@ namespace WordAutomationSharp
             ShowTree();
         }
 
+        private const int Threshold = 5;
+
+        private List<TreeViewItem> treenodes = new List<TreeViewItem>(); 
         private void ShowTree(){
+            OutputTreeView.ItemsSource = null;
             OutputTreeView.Items.Clear();
+            treenodes.Clear();
             var t = new Thread(() =>{
                 var nodes = this.graph.WordNodes.OrderBy(w => w.Key).ToList();
                 for(var i=0; i<nodes.Count; ++i){
@@ -84,29 +89,27 @@ namespace WordAutomationSharp
                         rights.Items.Clear();
                         wordNode.Items.Add(lefts);
                         wordNode.Items.Add(rights);
-                        OutputTreeView.Items.Add(wordNode);
+                        treenodes.Add(wordNode);
                     });
 
-                    var sortedLefts = from entry in kv.Value.Lefts orderby entry.Value descending select entry;
-                    var list = sortedLefts.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
-                    Dispatcher.Invoke(() => {
-                        var node = OutputTreeView.Items[i] as TreeViewItem;
-                        var leftitems = node.Items[0] as TreeViewItem;
-                        var rightitems = node.Items[1] as TreeViewItem;
-                        leftitems.ItemsSource = list;
-                    });
+                    var sortedLefts = from entry in kv.Value.Lefts where entry.Value>Threshold orderby entry.Value descending select entry;
+                    var litems = sortedLefts.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
 
-                    var sortedRights = from entry in kv.Value.Rights orderby entry.Value descending select entry;
-                    list = sortedRights.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
-                    Dispatcher.Invoke(() => {
-                        var node = OutputTreeView.Items[i] as TreeViewItem;
-                        var leftitems = node.Items[0] as TreeViewItem;
+                    var sortedRights = from entry in kv.Value.Rights where entry.Value>Threshold orderby entry.Value descending select entry;
+                    var ritems = sortedRights.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
+                    Dispatcher.Invoke(() =>{
+                        var node = treenodes[i];
                         var rightitems = node.Items[1] as TreeViewItem;
-                        rightitems.ItemsSource = list;
+                        var leftitems = node.Items[0] as TreeViewItem;
+                        leftitems.ItemsSource = litems;
+                        rightitems.ItemsSource = ritems;
                     });
 
                 }
-                Dispatcher.Invoke(() => progress.Value = 100.0);
+                Dispatcher.Invoke(() =>{
+                    OutputTreeView.ItemsSource = treenodes;
+                    progress.Value = 100.0;
+                });
             });
             t.IsBackground = false;
             t.Start();

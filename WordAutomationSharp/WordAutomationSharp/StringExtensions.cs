@@ -16,7 +16,7 @@ namespace WordAutomationSharp{
         }
 
         public static string[] ExtractWords(this string str){
-            return str.Split(new[]{' ', '.', ',', ';', '\"', '?', '!', '\n', '\r', '(', ')'},
+            return str.Split(new[]{' ', '.', ',', ';', '\"', '?', '!', '\n', '\r', '(', ')', '[', ']','_'},
                 StringSplitOptions.RemoveEmptyEntries);
         }
     }
