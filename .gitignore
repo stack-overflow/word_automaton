@@ -31,3 +31,5 @@ WordAutomationSharp/WordAutomationSharp/bin/*
 WordAutomationSharp/WordAutomationSharp/obj/*
 word_automation/Debug/*
 word_automation/Release/*
+*.suo
+*.pdb

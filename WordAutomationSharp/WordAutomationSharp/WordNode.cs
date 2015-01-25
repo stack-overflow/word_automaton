@@ -12,6 +12,14 @@ namespace WordAutomationSharp {
         public Dictionary<WordNode, int> Rights { get; set; }
         public bool Visited { get; set; }
 
+        public int TotalConnections{
+            get{
+                var l = Lefts.Count > 0 ? Lefts.Max(n => n.Value) : 0;
+                var r = Rights.Count > 0 ? Rights.Max(n => n.Value) : 0;
+                return r > l ? r : l;
+            }
+        }
+
         public WordNode(string name){
             NormalizedName = name.ToLower();
             OriginalNames = new List<string>();

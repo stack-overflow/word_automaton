@@ -136,7 +136,7 @@ namespace WordAutomationSharp
             OutputTreeView.Items.Clear();
             treenodes.Clear();
             var t = new Thread(() =>{
-                var nodes = this.graph.WordNodes.OrderBy(w => w.Key).ToList();
+                var nodes = this.graph.WordNodes.Where(w=>(w.Value.TotalConnections>2*Threshold)).OrderBy(w => w.Key).ToList();
                 for(var i=0; i<nodes.Count; ++i){
                     Dispatcher.Invoke(() => progress.Value = (double)i/nodes.Count * 100.0);
                     var kv = nodes[i];
