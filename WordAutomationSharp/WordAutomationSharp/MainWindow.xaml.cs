@@ -14,9 +14,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Win32;
-using System.Data;
-using System.Data.Sql;
-using System.Data.SqlClient;
+using System.Web.Script.Serialization;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace WordAutomationSharp
 {
@@ -35,6 +35,7 @@ namespace WordAutomationSharp
         }
 
         WordGraph graph;
+        int defaultLevel = 3;
         Dictionary<Tuple<string, string>, Dictionary<string, int>> wordListMap = new Dictionary<Tuple<string, string>, Dictionary<string, int>>();
         Dictionary<Tuple<string, string, string>, Dictionary<string, int>> tripleWords = new Dictionary<Tuple<string, string, string>, Dictionary<string, int>>();
         void CreateTwoPrevsMap(string[] words)
@@ -100,6 +101,7 @@ namespace WordAutomationSharp
                     p = words[i - 1].ToLower();
                 }
                 var triple = Tuple.Create(ppp, pp, p);
+
                 if (!tripleWords.ContainsKey(triple))
                 {
                     tripleWords[triple] = new Dictionary<string, int>();
@@ -139,15 +141,13 @@ namespace WordAutomationSharp
             }
 
             IEnumerable<string> sortedRights;
-            if (tripleWords.ContainsKey(triple))
+            if (defaultLevel == 3 && tripleWords.ContainsKey(triple))
             {
                 sortedRights = (from entry in tripleWords[triple].Keys orderby tripleWords[triple][entry] descending select entry).Take(numCandidates);
-                MessageBox.Show("A Triple Win");
             }
             else if (wordListMap.ContainsKey(tuple))
             {
                 sortedRights = (from entry in wordListMap[tuple].Keys orderby wordListMap[tuple][entry] descending select entry).Take(numCandidates);
-                MessageBox.Show("A Double Win");
             }
             else
             {
@@ -167,33 +167,30 @@ namespace WordAutomationSharp
         }
 
         private void ReadFile(string file){
-            string connectionString = Properties.Settings.Default.words_dbConnectionString;
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                var t = new Thread(() =>{
-                    var cfr = new SentenceFileReader(file);
-                    this.graph = new WordGraph();
-                    var str = "";
-                    while (cfr.HasMore()){
-                        progress.Dispatcher.Invoke(() => progress.Value = cfr.GetProgress());
-                        var sentence = cfr.GetNextSentence();
-                        var words = sentence.ExtractWords();
-                        if (words.Length > 1){
-                            for (int i = 0, j = 1; j < words.Length; ++i, ++j){
-                                graph.MakeLink(words[i], words[j]);
-                            }
-                        } else if (words.Length == 1 && words[0] != ""){
-                            graph.GetOrCreate(words[0]);
+            var t = new Thread(() =>{
+                var cfr = new SentenceFileReader(file);
+                this.graph = new WordGraph();
+                var str = "";
+                while (cfr.HasMore()){
+                    progress.Dispatcher.Invoke(() => progress.Value = cfr.GetProgress());
+                    var sentence = cfr.GetNextSentence();
+                    var words = sentence.ExtractWords();
+                    if (words.Length > 1){
+                        for (int i = 0, j = 1; j < words.Length; ++i, ++j){
+                            graph.MakeLink(words[i], words[j]);
                         }
-                        CreateTwoPrevsMap(words);
-                        CreateTriplePrevsMap(words);
+                    } else if (words.Length == 1 && words[0] != ""){
+                        graph.GetOrCreate(words[0]);
                     }
-                    Dispatcher.Invoke(() => progress.Value = 100.0);
-                    Dispatcher.Invoke(ShowTree);
+                    CreateTwoPrevsMap(words);
+                    CreateTriplePrevsMap(words);
+                }
+
+                Dispatcher.Invoke(() => progress.Value = 100.0);
+                Dispatcher.Invoke(ShowTree);
                 });
-                t.IsBackground = false;
-                t.Start();
-            }
+            t.IsBackground = false;
+            t.Start();
         }
 
         private void OutputTreeView_Loaded(object sender, RoutedEventArgs e){
@@ -257,11 +254,6 @@ namespace WordAutomationSharp
             {
                 int numCandidates = 5;
                 var sortedRights = GetCandidates(words, numCandidates);
-                //if (sortedRights == null)
-                //{
-                //    var word = words.Last(s => s != "");
-                //    sortedRights = (from entry in graph.WordNodes[word].Rights orderby entry.Value descending select entry.Key.NormalizedName).Take(numCandidates);
-                //}
 
                 listBox1.Items.Clear();
                 foreach (var zord in sortedRights)
@@ -279,6 +271,14 @@ namespace WordAutomationSharp
             op.Multiselect = false;
             op.ShowDialog(this);
             ReadFile(op.FileName);
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LevelComboBox.Text != "")
+            {
+                defaultLevel = Int32.Parse((string)((ComboBoxItem)LevelComboBox.SelectedItem).Content);
+            }
         }
     }
 }
