@@ -32,6 +32,64 @@ namespace WordAutomationSharp
         }
 
         WordGraph graph;
+        Dictionary<List<string>, Dictionary<string, int>> wordListMap = new Dictionary<List<string>, Dictionary<string, int>>(new ListComparer<string>());
+        void CreateTwoPrevsMap(string[] words)
+        {
+            string pp = null;
+            string p = null;
+            for (int i = 0; i < words.Length; ++i)
+            {
+                string current = words[i].ToLower();
+                if (i == 0)
+                {
+                    pp = p = null;
+                }
+                else if (i == 1)
+                {
+                    pp = null;
+                    p = words[i - 1].ToLower();
+                }
+                else
+                {
+                    pp = words[i - 2].ToLower();
+                    p = words[i - 1].ToLower();
+                }
+                var l = new List<string>() { pp, p };
+                if (!wordListMap.ContainsKey(l))
+                {
+                    wordListMap[l] = new Dictionary<string, int>();
+                }
+                if (!wordListMap[l].ContainsKey(current))
+                {
+                    wordListMap[l].Add(current, 0);
+                }
+                ++wordListMap[l][current];
+            }
+        }
+        IEnumerable<string> GetCandidates(string[] words, int numCandidates)
+        {
+            List<string> lastTwoWords = words.Select(s => s).Where(s => s != "").Skip(Math.Max(0, words.Count() - 2)).Take(2).ToList();
+            if (words.Length == 0)
+            {
+                lastTwoWords.Add(null); lastTwoWords.Add(null);
+            }
+            else if (words.Length == 1)
+            {
+                lastTwoWords = new List<string>() { null, lastTwoWords.First() };
+            }
+            IEnumerable<string> sortedRights;
+            if (wordListMap.ContainsKey(lastTwoWords))
+            {
+                sortedRights = (from entry in wordListMap[lastTwoWords].Keys orderby wordListMap[lastTwoWords][entry] descending select entry).Take(numCandidates);
+            }
+            else
+            {
+                sortedRights = null;
+            }
+            return sortedRights;
+        }
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -56,6 +114,7 @@ namespace WordAutomationSharp
                     } else if (words.Length == 1 && words[0] != ""){
                         graph.GetOrCreate(words[0]);
                     }
+                    CreateTwoPrevsMap(words);
                 }
                 Dispatcher.Invoke(() => progress.Value = 100.0);
                 Dispatcher.Invoke(ShowTree);
@@ -114,15 +173,20 @@ namespace WordAutomationSharp
 
         private void textBox1_TextChanged(object sender, TextChangedEventArgs e)
         {
-            var words = textBox1.Text.ExtractWords();
+            var words = textBox1.Text.ToLower().ExtractWords();
             if (words.Length <= 0)
             {
                 return;
             }
-
-            try{
-                var word = words.Last(s => s != "");
-                var sortedRights = (from entry in graph.WordNodes[word].Rights orderby entry.Value descending select entry.Key.NormalizedName).Take(5);
+            try
+            {
+                int numCandidates = 5;
+                var sortedRights = GetCandidates(words, numCandidates);
+                if (sortedRights == null)
+                {
+                    var word = words.Last(s => s != "");
+                    sortedRights = (from entry in graph.WordNodes[word].Rights orderby entry.Value descending select entry.Key.NormalizedName).Take(numCandidates);
+                }
 
                 listBox1.Items.Clear();
                 foreach (var zord in sortedRights)
@@ -130,6 +194,7 @@ namespace WordAutomationSharp
                     listBox1.Items.Add(zord);
                 }
             }
+
             catch { }
             listBox1.UpdateLayout();
         }
