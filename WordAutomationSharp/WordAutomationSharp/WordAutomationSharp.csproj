@@ -53,6 +53,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ListComparer.cs" />
     <Compile Include="SentenceFileReader.cs" />
     <Compile Include="SentencePrinter.cs" />
     <Compile Include="StringExtensions.cs" />

@@ -11,3 +11,16 @@ L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordA
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.csproj.GenerateResource.Cache
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.exe
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.pdb
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Debug\test.txt
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Debug\WordAutomationSharp.exe.config
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Debug\WordAutomationSharp.exe
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Debug\WordAutomationSharp.pdb
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\MainWindow.baml
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\MainWindow.g.cs
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\App.g.cs
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp_MarkupCompile.cache
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.g.resources
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.Properties.Resources.resources
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.csproj.GenerateResource.Cache
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.exe
+C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Debug\WordAutomationSharp.pdb
