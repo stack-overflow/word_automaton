@@ -1,6 +1,8 @@
+L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\test.txt
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\WordAutomationSharp.exe.config
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\WordAutomationSharp.exe
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\WordAutomationSharp.pdb
+L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.csprojResolveAssemblyReference.cache
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\MainWindow.baml
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\MainWindow.g.cs
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\App.g.cs
@@ -10,16 +12,3 @@ L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\Wor
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.csproj.GenerateResource.Cache
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.exe
 L:\Szkola\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.pdb
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\WordAutomationSharp.exe.config
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.pdb
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\WordAutomationSharp.exe
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\bin\Release\WordAutomationSharp.pdb
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.csprojResolveAssemblyReference.cache
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\MainWindow.baml
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\MainWindow.g.cs
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\App.g.cs
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp_MarkupCompile.cache
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.g.resources
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.Properties.Resources.resources
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.csproj.GenerateResource.Cache
-C:\Users\Tomasz\Projects\word_automaton\WordAutomationSharp\WordAutomationSharp\obj\Release\WordAutomationSharp.exe
