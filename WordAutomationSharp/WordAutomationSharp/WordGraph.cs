@@ -52,7 +52,7 @@ namespace WordAutomationSharp {
             SingleWords.Clear();
             DoubleWords.Clear();
             TripleWords.Clear();
-
+            GC.Collect();
         }
     }
 }

@@ -192,9 +192,11 @@ namespace WordAutomationSharp
                     CreateTripleWords(words);
                 }
 
-                Dispatcher.Invoke(() => progress.Value = 100.0);
-                Dispatcher.Invoke(ShowTree);
+                Dispatcher.Invoke(() =>{
+                    progress.Value = 100.0;
+                    ShowTree();
                 });
+            });
             t.IsBackground = false;
             t.Start();
         }
@@ -215,13 +217,25 @@ namespace WordAutomationSharp
             treenodes1.Clear();
             treenodes2.Clear();
             treenodes3.Clear();
-            progress.Value = 0;
-
+            //fixprogress(0);
+            progress.IsIndeterminate = true;
+            ProgressLabel.Text = "Generating views";
             new Thread(PopulateTreeOrder1) { IsBackground = false }.Start();
             new Thread(PopulateTreeOrder2) { IsBackground = false }.Start();
             new Thread(PopulateTreeOrder3) { IsBackground = false }.Start();
         }
 
+        private int fixprogressstaticvalue = 0;
+        private void fixprogress(int i){
+            if (i == 0) fixprogressstaticvalue = 0;
+            else fixprogressstaticvalue += i;
+            if(fixprogressstaticvalue == 6) {
+                ProgressLabel.Text = "Finished";
+                progress.IsIndeterminate = false;
+                progress.Value = 100;
+            }
+        }
+  
         private void PopulateTreeOrder1(){
             var g = (from node in graph.SingleWords orderby node.Key descending select node).ToList();
             for (var i = 0; i < g.Count; ++i){
@@ -229,13 +243,13 @@ namespace WordAutomationSharp
 
                 var items = from node in n.Value where node.Value > Threshold orderby node.Value descending select node;
 
-                Dispatcher.Invoke(() => {
-                    progress.Value += ((double) i/g.Count*100.0)/3.0;
+                Dispatcher.Invoke(() =>{
                     if (items.Any()) treenodes1.Add(new TreeViewItem{Header = n.Key, ItemsSource = items});
                 });
             }
             Dispatcher.Invoke(() => {
                 TreeViewOrder1.ItemsSource = treenodes1;
+                fixprogress(1);
             });
         }
 
@@ -246,13 +260,13 @@ namespace WordAutomationSharp
 
                 var items = from node in n.Value where node.Value > Threshold orderby node.Value descending select node;
 
-                Dispatcher.Invoke(() => {
-                    progress.Value += ((double)i / g.Count * 100.0) / 3.0;
+                Dispatcher.Invoke(() =>{
                     if(items.Any()) treenodes2.Add(new TreeViewItem { Header = string.Format("{0} {1}",n.Key.Item1??"-", n.Key.Item2??"-"), ItemsSource = items });
                 });
             }
             Dispatcher.Invoke(() => {
                 TreeViewOrder2.ItemsSource = treenodes2;
+                fixprogress(2);
             });
         }
 
@@ -263,13 +277,13 @@ namespace WordAutomationSharp
 
                 var items = from node in n.Value where node.Value > Threshold orderby node.Value descending select node;
 
-                Dispatcher.Invoke(() => {
-                    progress.Value += ((double)i / g.Count * 100.0) / 3.0;
+                Dispatcher.Invoke(() =>{
                     if(items.Any()) treenodes3.Add(new TreeViewItem { Header = string.Format("{0} {1} {2}", n.Key.Item1??"-", n.Key.Item2??"-", n.Key.Item3??"-"), ItemsSource = items });
                 });
             }
             Dispatcher.Invoke(() => {
                 TreeViewOrder3.ItemsSource = treenodes3;
+                fixprogress(3);
             });
         }
 
@@ -300,6 +314,8 @@ namespace WordAutomationSharp
             var op = new OpenFileDialog{Multiselect = false, Filter = "All files (*.*)|*.*"};
             op.ShowDialog(this);
             if (op.FileName == "") return;
+            progress.Value = 0;
+            ProgressLabel.Text = "Reading";
             ReadFile(op.FileName);
         }
 
@@ -322,7 +338,9 @@ namespace WordAutomationSharp
             var op = new OpenFileDialog{Multiselect = false, Filter = "AMG databases (*.amg)|*.amg|All files (*.*)|*.*"};
             op.ShowDialog();
             if (op.FileName == "") return;
+            graph.Clear();
             progress.IsIndeterminate = true;
+            ProgressLabel.Text = "Loading";
             var t = new Thread(() =>{
                 var serializer = new DataContractSerializer(typeof (WordGraph));
                 using (var sr = new StreamReader(op.FileName)){
@@ -332,9 +350,8 @@ namespace WordAutomationSharp
                 }
                 Dispatcher.Invoke(() => {
                     progress.IsIndeterminate = false;
-                    progress.Value = 100;
+                    ShowTree();
                 });
-                Dispatcher.Invoke(ShowTree);
             });
             t.IsBackground = false;
             t.Start();
@@ -357,11 +374,11 @@ namespace WordAutomationSharp
             save.ShowDialog(this);
             if(save.FileName == "") return;
             progress.IsIndeterminate = true;
-            progress.Value = 20;
+            ProgressLabel.Text = "Saving";
             var t = new Thread(() =>{
                 using (var sw = new StreamWriter(save.FileName)){
                     using (var writer = new XmlTextWriter(sw)){
-                        writer.Formatting = Formatting.Indented;
+                        //writer.Formatting = Formatting.Indented;
                         serializer.WriteObject(writer, graph);
                         writer.Flush();
                     }
@@ -369,6 +386,7 @@ namespace WordAutomationSharp
                 Dispatcher.Invoke(() =>{
                     progress.IsIndeterminate = false;
                     progress.Value = 100;
+                    ProgressLabel.Text = "Finished";
                 });
             });
             t.IsBackground = false;
