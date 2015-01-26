@@ -208,6 +208,7 @@ namespace WordAutomationSharp
         private List<TreeViewItem> treenodes3 = new List<TreeViewItem>(); 
 
         private void ShowTree(){
+            GetAutocompletions();
             TreeViewOrder1.ItemsSource = null;
             TreeViewOrder1.Items.Clear();
             TreeViewOrder2.ItemsSource = null;
@@ -217,7 +218,7 @@ namespace WordAutomationSharp
             treenodes1.Clear();
             treenodes2.Clear();
             treenodes3.Clear();
-            //fixprogress(0);
+            fixprogress(0);
             progress.IsIndeterminate = true;
             ProgressLabel.Text = "Generating views";
             new Thread(PopulateTreeOrder1) { IsBackground = false }.Start();
@@ -287,26 +288,24 @@ namespace WordAutomationSharp
             });
         }
 
-        private void textBox1_TextChanged(object sender, TextChangedEventArgs e)
-        {
+        private void textBox1_TextChanged(object sender, TextChangedEventArgs e){
+            GetAutocompletions();
+        }
+
+        private void GetAutocompletions(){
             var words = textBox1.Text.ToLower().ExtractWords();
-            if (words.Length <= 0)
-            {
-                return;
+            if (words.Length <= 0){
+             //   return;
             }
-            try
-            {
+            try{
                 int numCandidates = 5;
                 var sortedRights = GetCandidates(words, numCandidates);
 
                 listBox1.Items.Clear();
-                foreach (var zord in sortedRights)
-                {
+                foreach (var zord in sortedRights){
                     listBox1.Items.Add(zord);
                 }
-            }
-
-            catch { }
+            } catch{}
             listBox1.UpdateLayout();
         }
 
@@ -325,6 +324,7 @@ namespace WordAutomationSharp
             {
                 defaultLevel = Int32.Parse((string)((ComboBoxItem)LevelComboBox.SelectedItem).Content);
             }
+            GetAutocompletions();
         }
 
         private void listBox1_MouseDoubleClick(object sender, MouseButtonEventArgs e){
@@ -338,7 +338,6 @@ namespace WordAutomationSharp
             var op = new OpenFileDialog{Multiselect = false, Filter = "AMG databases (*.amg)|*.amg|All files (*.*)|*.*"};
             op.ShowDialog();
             if (op.FileName == "") return;
-            graph.Clear();
             progress.IsIndeterminate = true;
             ProgressLabel.Text = "Loading";
             var t = new Thread(() =>{
@@ -362,6 +361,8 @@ namespace WordAutomationSharp
             var res = MessageBox.Show("Are you sure you want to create new database?", "New database", MessageBoxButton.YesNo);
             if (res == MessageBoxResult.Yes){
                 graph.Clear();
+                listBox1.ItemsSource = null;
+                listBox1.Items.Clear();
                 ShowTree();
             }
         }

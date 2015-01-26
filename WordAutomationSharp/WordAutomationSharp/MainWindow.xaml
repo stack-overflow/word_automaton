@@ -37,9 +37,9 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button Content="Load Database" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Width="116" Click="Button_Click_1" />
-        <Button Content="New Database" HorizontalAlignment="Left" Margin="131,5,0,0" VerticalAlignment="Top" Width="110" Click="Button_Click_2" />
-        <Button Content="Expand" HorizontalAlignment="Left" Margin="246,5,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <Button Content="New Database" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Width="116" Click="Button_Click_2" />
+        <Button Content="Add Database" HorizontalAlignment="Left" Margin="151,5,0,0" VerticalAlignment="Top" Width="110" Click="Button_Click_1" />
+        <Button Content="Add File" HorizontalAlignment="Left" Margin="266,5,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
         <Button Content="Save" HorizontalAlignment="Left" Margin="407,5,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_3" />
     </Grid>
 </Window>
