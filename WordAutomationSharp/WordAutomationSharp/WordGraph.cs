@@ -8,8 +8,9 @@ using System.Runtime.Serialization;
 namespace WordAutomationSharp {
     [DataContract]
     public class WordGraph{
-        //[DataMember]
-        public Dictionary<string, WordNode> WordNodes { get; set; }
+
+        [DataMember]
+        public Dictionary<string, Dictionary<string, int>> SingleWords { get; set; }
 
         [DataMember]
         public Dictionary<Tuple<string, string>, Dictionary<string, int>> DoubleWords { get; set; }
@@ -18,32 +19,37 @@ namespace WordAutomationSharp {
         public Dictionary<Tuple<string, string, string>, Dictionary<string, int>> TripleWords { get; set; }
 
         public WordGraph(){
+            SingleWords = new Dictionary<string, Dictionary<string, int>>();
             TripleWords = new Dictionary<Tuple<string, string, string>, Dictionary<string, int>>();
             DoubleWords = new Dictionary<Tuple<string, string>, Dictionary<string, int>>();
-            WordNodes = new Dictionary<string, WordNode>();
         }
 
-        public WordNode GetOrCreate(string name){
-            var word = name.ToLower();
-            WordNode node;
-            WordNodes.TryGetValue(word, out node);
-            if (node == null){
-                node = new WordNode(name);
-                WordNodes.Add(word, node);
+        public void MakeSingleLink(string a, string b){
+            if (!SingleWords.ContainsKey(a))
+            {
+                SingleWords.Add(a, new Dictionary<string, int>());
             }
-            node.AddOriginalName(name);
-            return node;
+            if (!SingleWords[a].ContainsKey(b))
+            {
+                SingleWords[a].Add(b, 0);
+            }
+            ++SingleWords[a][b];
         }
 
-        public void MakeLink(string a, string b){
-            var aNode = GetOrCreate(a);
-            var bNode = GetOrCreate(b);
-            try{aNode.Rights[bNode]++;}catch(Exception e){aNode.Rights.Add(bNode, 1);}
-            try{bNode.Lefts[aNode]++;}catch(Exception e){bNode.Lefts.Add(aNode, 1);}
+        public Dictionary<string, int> GetSingleCandidates(string str)
+        {
+            if (str != null && SingleWords.ContainsKey(str))
+            {
+                return SingleWords[str];
+            }
+            else
+            {
+                return new Dictionary<string, int>();
+            }
         }
 
         public void Clear(){
-            WordNodes.Clear();
+            SingleWords.Clear();
             DoubleWords.Clear();
             TripleWords.Clear();
 

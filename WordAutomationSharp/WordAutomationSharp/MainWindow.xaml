@@ -8,6 +8,7 @@
         <ListBox Height="Auto" HorizontalAlignment="Right" Margin="0,52,12,70" Name="listBox1" VerticalAlignment="Stretch" Width="132" MouseDoubleClick="listBox1_MouseDoubleClick" />
         <ProgressBar x:Name="progress" Margin="12,0,12,12" VerticalAlignment="Bottom" Height="15"/>
         <ComboBox x:Name="LevelComboBox" HorizontalAlignment="Left" Margin="536,14,0,0" VerticalAlignment="Top" Width="75" Height="20" SelectionChanged="ComboBox_SelectionChanged">
+            <ComboBoxItem Content="1"></ComboBoxItem>
             <ComboBoxItem Content="2"></ComboBoxItem>
             <ComboBoxItem IsSelected="True" Content="3"></ComboBoxItem>
         </ComboBox>

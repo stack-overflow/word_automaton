@@ -38,7 +38,17 @@ namespace WordAutomationSharp
         WordGraph graph;
         int defaultLevel = 3;
         
-        void CreateTwoPrevsMap(string[] words)
+        void CreateSingleWords(string[] words)
+        {
+            if (words.Length > 1)
+            {
+                for (int i = 0, j = 1; j < words.Length; ++i, ++j)
+                {
+                    graph.MakeSingleLink(words[i], words[j]);
+                }
+            }
+        }
+        void CreateDoubleWords(string[] words)
         {
             string pp = null;
             string p = null;
@@ -71,7 +81,7 @@ namespace WordAutomationSharp
                 ++graph.DoubleWords[tuple][current];
             }
         }
-        void CreateTriplePrevsMap(string[] words)
+        void CreateTripleWords(string[] words)
         {
             string ppp = null;
             string pp = null;
@@ -145,14 +155,14 @@ namespace WordAutomationSharp
             {
                 sortedRights = (from entry in graph.TripleWords[triple].Keys orderby graph.TripleWords[triple][entry] descending select entry).Take(numCandidates);
             }
-            else if (graph.DoubleWords.ContainsKey(tuple))
+            else if (defaultLevel != 1 && graph.DoubleWords.ContainsKey(tuple))
             {
                 sortedRights = (from entry in graph.DoubleWords[tuple].Keys orderby graph.DoubleWords[tuple][entry] descending select entry).Take(numCandidates);
             }
             else
             {
                 var word = words.Last(s => s != "");
-                sortedRights = (from entry in graph.WordNodes[word].Rights orderby entry.Value descending select entry.Key.NormalizedName).Take(numCandidates);
+                sortedRights = (from entry in graph.GetSingleCandidates(tuple.Item2) orderby entry.Value descending select entry.Key).Take(numCandidates);
             }
             return sortedRights;
         }
@@ -175,15 +185,9 @@ namespace WordAutomationSharp
                     progress.Dispatcher.Invoke(() => progress.Value = cfr.GetProgress());
                     var sentence = cfr.GetNextSentence();
                     var words = sentence.ExtractWords();
-                    if (words.Length > 1){
-                        for (int i = 0, j = 1; j < words.Length; ++i, ++j){
-                            graph.MakeLink(words[i], words[j]);
-                        }
-                    } else if (words.Length == 1 && words[0] != ""){
-                        graph.GetOrCreate(words[0]);
-                    }
-                    CreateTwoPrevsMap(words);
-                    CreateTriplePrevsMap(words);
+                    CreateSingleWords(words);
+                    CreateDoubleWords(words);
+                    CreateTripleWords(words);
                 }
 
                 Dispatcher.Invoke(() => progress.Value = 100.0);
@@ -201,43 +205,43 @@ namespace WordAutomationSharp
             TreeViewOrder1.Items.Clear();
             treenodes.Clear();
             return;
-            var t = new Thread(() =>{
-                var nodes = this.graph.WordNodes.OrderBy(w => w.Key).ToList();
-                for(var i=0; i<nodes.Count; ++i){
-                    Dispatcher.Invoke(() => progress.Value = (double)i/nodes.Count * 100.0);
-                    var kv = nodes[i];
-                    Dispatcher.Invoke(() =>{
-                        var wordNode = new TreeViewItem{Header = kv.Value.NormalizedName};
-                        var lefts = new TreeViewItem{Header = "Left"};
-                        lefts.Items.Clear();
-                        var rights = new TreeViewItem{Header = "Right"};
-                        rights.Items.Clear();
-                        wordNode.Items.Add(lefts);
-                        wordNode.Items.Add(rights);
-                        treenodes.Add(wordNode);
-                    });
+            //var t = new Thread(() =>{
+            //    var nodes = this.graph.WordNodes.OrderBy(w => w.Key).ToList();
+            //    for(var i=0; i<nodes.Count; ++i){
+            //        Dispatcher.Invoke(() => progress.Value = (double)i/nodes.Count * 100.0);
+            //        var kv = nodes[i];
+            //        Dispatcher.Invoke(() =>{
+            //            var wordNode = new TreeViewItem{Header = kv.Value.NormalizedName};
+            //            var lefts = new TreeViewItem{Header = "Left"};
+            //            lefts.Items.Clear();
+            //            var rights = new TreeViewItem{Header = "Right"};
+            //            rights.Items.Clear();
+            //            wordNode.Items.Add(lefts);
+            //            wordNode.Items.Add(rights);
+            //            treenodes.Add(wordNode);
+            //        });
 
-                    var sortedLefts = from entry in kv.Value.Lefts where entry.Value>Threshold orderby entry.Value descending select entry;
-                    var litems = sortedLefts.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
+            //        var sortedLefts = from entry in kv.Value.Lefts where entry.Value>Threshold orderby entry.Value descending select entry;
+            //        var litems = sortedLefts.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
 
-                    var sortedRights = from entry in kv.Value.Rights where entry.Value>Threshold orderby entry.Value descending select entry;
-                    var ritems = sortedRights.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
-                    Dispatcher.Invoke(() =>{
-                        var node = treenodes[i];
-                        var rightitems = node.Items[1] as TreeViewItem;
-                        var leftitems = node.Items[0] as TreeViewItem;
-                        leftitems.ItemsSource = litems;
-                        rightitems.ItemsSource = ritems;
-                    });
+            //        var sortedRights = from entry in kv.Value.Rights where entry.Value>Threshold orderby entry.Value descending select entry;
+            //        var ritems = sortedRights.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
+            //        Dispatcher.Invoke(() =>{
+            //            var node = treenodes[i];
+            //            var rightitems = node.Items[1] as TreeViewItem;
+            //            var leftitems = node.Items[0] as TreeViewItem;
+            //            leftitems.ItemsSource = litems;
+            //            rightitems.ItemsSource = ritems;
+            //        });
 
-                }
-                Dispatcher.Invoke(() =>{
-                    TreeViewOrder1.ItemsSource = treenodes;
-                    progress.Value = 100.0;
-                });
-            });
-            t.IsBackground = false;
-            t.Start();
+            //    }
+            //    Dispatcher.Invoke(() =>{
+            //        TreeViewOrder1.ItemsSource = treenodes;
+            //        progress.Value = 100.0;
+            //    });
+            //});
+            //t.IsBackground = false;
+            //t.Start();
         }
 
         private void textBox1_TextChanged(object sender, TextChangedEventArgs e)
