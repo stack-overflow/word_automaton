@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
@@ -185,6 +186,7 @@ namespace WordAutomationSharp
                     progress.Dispatcher.Invoke(() => progress.Value = cfr.GetProgress());
                     var sentence = cfr.GetNextSentence();
                     var words = sentence.ExtractWords();
+                    for (var i = 0; i < words.Length; ++i) words[i] = words[i].ToLower();
                     CreateSingleWords(words);
                     CreateDoubleWords(words);
                     CreateTripleWords(words);
@@ -197,51 +199,78 @@ namespace WordAutomationSharp
             t.Start();
         }
 
-        private const int Threshold = 5;
+        private const int Threshold = 10;
 
-        private List<TreeViewItem> treenodes = new List<TreeViewItem>(); 
+        private List<TreeViewItem> treenodes1 = new List<TreeViewItem>();
+        private List<TreeViewItem> treenodes2 = new List<TreeViewItem>();
+        private List<TreeViewItem> treenodes3 = new List<TreeViewItem>(); 
+
         private void ShowTree(){
             TreeViewOrder1.ItemsSource = null;
             TreeViewOrder1.Items.Clear();
-            treenodes.Clear();
-            return;
-            //var t = new Thread(() =>{
-            //    var nodes = this.graph.WordNodes.OrderBy(w => w.Key).ToList();
-            //    for(var i=0; i<nodes.Count; ++i){
-            //        Dispatcher.Invoke(() => progress.Value = (double)i/nodes.Count * 100.0);
-            //        var kv = nodes[i];
-            //        Dispatcher.Invoke(() =>{
-            //            var wordNode = new TreeViewItem{Header = kv.Value.NormalizedName};
-            //            var lefts = new TreeViewItem{Header = "Left"};
-            //            lefts.Items.Clear();
-            //            var rights = new TreeViewItem{Header = "Right"};
-            //            rights.Items.Clear();
-            //            wordNode.Items.Add(lefts);
-            //            wordNode.Items.Add(rights);
-            //            treenodes.Add(wordNode);
-            //        });
+            TreeViewOrder2.ItemsSource = null;
+            TreeViewOrder2.Items.Clear();
+            TreeViewOrder3.ItemsSource = null;
+            TreeViewOrder3.Items.Clear();
+            treenodes1.Clear();
+            treenodes2.Clear();
+            treenodes3.Clear();
+            progress.Value = 0;
 
-            //        var sortedLefts = from entry in kv.Value.Lefts where entry.Value>Threshold orderby entry.Value descending select entry;
-            //        var litems = sortedLefts.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
+            new Thread(PopulateTreeOrder1) { IsBackground = false }.Start();
+            new Thread(PopulateTreeOrder2) { IsBackground = false }.Start();
+            new Thread(PopulateTreeOrder3) { IsBackground = false }.Start();
+        }
 
-            //        var sortedRights = from entry in kv.Value.Rights where entry.Value>Threshold orderby entry.Value descending select entry;
-            //        var ritems = sortedRights.Select(item => item.Key.NormalizedName + ":" + item.Value).ToList();
-            //        Dispatcher.Invoke(() =>{
-            //            var node = treenodes[i];
-            //            var rightitems = node.Items[1] as TreeViewItem;
-            //            var leftitems = node.Items[0] as TreeViewItem;
-            //            leftitems.ItemsSource = litems;
-            //            rightitems.ItemsSource = ritems;
-            //        });
+        private void PopulateTreeOrder1(){
+            var g = (from node in graph.SingleWords orderby node.Key descending select node).ToList();
+            for (var i = 0; i < g.Count; ++i){
+                var n = g[i];
 
-            //    }
-            //    Dispatcher.Invoke(() =>{
-            //        TreeViewOrder1.ItemsSource = treenodes;
-            //        progress.Value = 100.0;
-            //    });
-            //});
-            //t.IsBackground = false;
-            //t.Start();
+                var items = from node in n.Value where node.Value > Threshold orderby node.Value descending select node;
+
+                Dispatcher.Invoke(() => {
+                    progress.Value += ((double) i/g.Count*100.0)/3.0;
+                    if (items.Any()) treenodes1.Add(new TreeViewItem{Header = n.Key, ItemsSource = items});
+                });
+            }
+            Dispatcher.Invoke(() => {
+                TreeViewOrder1.ItemsSource = treenodes1;
+            });
+        }
+
+        private void PopulateTreeOrder2() {
+            var g = (from node in graph.DoubleWords orderby node.Key descending select node).ToList();
+            for(var i = 0; i < g.Count; ++i) {
+                var n = g[i];
+
+                var items = from node in n.Value where node.Value > Threshold orderby node.Value descending select node;
+
+                Dispatcher.Invoke(() => {
+                    progress.Value += ((double)i / g.Count * 100.0) / 3.0;
+                    if(items.Any()) treenodes2.Add(new TreeViewItem { Header = string.Format("{0} {1}",n.Key.Item1??"-", n.Key.Item2??"-"), ItemsSource = items });
+                });
+            }
+            Dispatcher.Invoke(() => {
+                TreeViewOrder2.ItemsSource = treenodes2;
+            });
+        }
+
+        private void PopulateTreeOrder3() {
+            var g = (from node in graph.TripleWords orderby node.Key descending select node).ToList();
+            for(var i = 0; i < g.Count; ++i) {
+                var n = g[i];
+
+                var items = from node in n.Value where node.Value > Threshold orderby node.Value descending select node;
+
+                Dispatcher.Invoke(() => {
+                    progress.Value += ((double)i / g.Count * 100.0) / 3.0;
+                    if(items.Any()) treenodes3.Add(new TreeViewItem { Header = string.Format("{0} {1} {2}", n.Key.Item1??"-", n.Key.Item2??"-", n.Key.Item3??"-"), ItemsSource = items });
+                });
+            }
+            Dispatcher.Invoke(() => {
+                TreeViewOrder3.ItemsSource = treenodes3;
+            });
         }
 
         private void textBox1_TextChanged(object sender, TextChangedEventArgs e)
@@ -282,8 +311,10 @@ namespace WordAutomationSharp
             }
         }
 
-        private void listBox1_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-
+        private void listBox1_MouseDoubleClick(object sender, MouseButtonEventArgs e){
+            var c = textBox1.Text.Last();
+            var space = c != ' ';
+            textBox1.Text += space ? " " : "" + listBox1.SelectedItem + " ";
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e) {
@@ -342,9 +373,6 @@ namespace WordAutomationSharp
             });
             t.IsBackground = false;
             t.Start();
-
-
-            //File.WriteAllText(save.FileName, xmlString);
         }
     }
 }
