@@ -287,14 +287,22 @@ namespace WordAutomationSharp
             var op = new OpenFileDialog{Multiselect = false, Filter = "AMG databases (*.amg)|*.amg|All files (*.*)|*.*"};
             op.ShowDialog();
             if (op.FileName == "") return;
-            var xmlString = File.ReadAllText(op.FileName);
-            var serializer = new DataContractSerializer(typeof (WordGraph));
-            using (var sr = new StringReader(xmlString)){
-                using (var reader = new XmlTextReader(sr)){
-                    graph = (WordGraph)serializer.ReadObject(reader, true);
+            progress.IsIndeterminate = true;
+            var t = new Thread(() =>{
+                var serializer = new DataContractSerializer(typeof (WordGraph));
+                using (var sr = new StreamReader(op.FileName)){
+                    using (var reader = new XmlTextReader(sr)){
+                        graph = (WordGraph) serializer.ReadObject(reader, true);
+                    }
                 }
-            }
-            ShowTree();
+                Dispatcher.Invoke(() => {
+                    progress.IsIndeterminate = false;
+                    progress.Value = 100;
+                });
+                Dispatcher.Invoke(ShowTree);
+            });
+            t.IsBackground = false;
+            t.Start();
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e){
@@ -313,7 +321,7 @@ namespace WordAutomationSharp
             var save = new SaveFileDialog { OverwritePrompt = true, Filter = "AMG database (*.amg)|*.amg" };
             save.ShowDialog(this);
             if(save.FileName == "") return;
-            progress.IsIndeterminate = false;
+            progress.IsIndeterminate = true;
             progress.Value = 20;
             var t = new Thread(() =>{
                 using (var sw = new StreamWriter(save.FileName)){
@@ -323,7 +331,10 @@ namespace WordAutomationSharp
                         writer.Flush();
                     }
                 }
-                Dispatcher.Invoke(() => { progress.IsIndeterminate = false; });
+                Dispatcher.Invoke(() =>{
+                    progress.IsIndeterminate = false;
+                    progress.Value = 100;
+                });
             });
             t.IsBackground = false;
             t.Start();

@@ -8,13 +8,13 @@ using System.Runtime.Serialization;
 namespace WordAutomationSharp {
     [DataContract]
     public class WordGraph{
-        [DataMember]
+        //[DataMember]
         public Dictionary<string, WordNode> WordNodes { get; set; }
 
-        //[DataMember]
+        [DataMember]
         public Dictionary<Tuple<string, string>, Dictionary<string, int>> DoubleWords { get; set; }
 
-        //[DataMember]
+        [DataMember]
         public Dictionary<Tuple<string, string, string>, Dictionary<string, int>> TripleWords { get; set; }
 
         public WordGraph(){
