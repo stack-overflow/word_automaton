@@ -1,15 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WordAutomationSharp {
+namespace WordAutomationSharp{
+    [DataContract(IsReference = true)]
     public class WordNode{
+        [DataMember]
         public List<string> OriginalNames { get; set; }
+
+        [DataMember]
         public string NormalizedName { get; set; }
+
+        [DataMember]
         public Dictionary<WordNode, int> Lefts { get; set; }
+
+        [DataMember]
         public Dictionary<WordNode, int> Rights { get; set; }
+
+        [DataMember]
         public bool Visited { get; set; }
 
         public int TotalConnections{
@@ -30,7 +41,7 @@ namespace WordAutomationSharp {
         public void AddOriginalName(string org){
             var found = "";
             foreach (var s in OriginalNames){
-                if (s == org)return;
+                if (s == org) return;
             }
             OriginalNames.Add(org);
         }

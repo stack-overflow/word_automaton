@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,10 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml;
 using Microsoft.Win32;
 using System.Web.Script.Serialization;
 using System.IO;
-using Newtonsoft.Json;
 
 namespace WordAutomationSharp
 {
@@ -36,8 +37,7 @@ namespace WordAutomationSharp
 
         WordGraph graph;
         int defaultLevel = 3;
-        Dictionary<Tuple<string, string>, Dictionary<string, int>> wordListMap = new Dictionary<Tuple<string, string>, Dictionary<string, int>>();
-        Dictionary<Tuple<string, string, string>, Dictionary<string, int>> tripleWords = new Dictionary<Tuple<string, string, string>, Dictionary<string, int>>();
+        
         void CreateTwoPrevsMap(string[] words)
         {
             string pp = null;
@@ -60,15 +60,15 @@ namespace WordAutomationSharp
                     p = words[i - 1].ToLower();
                 }
                 var tuple = Tuple.Create(pp, p);
-                if (!wordListMap.ContainsKey(tuple))
+                if (!graph.DoubleWords.ContainsKey(tuple))
                 {
-                    wordListMap[tuple] = new Dictionary<string, int>();
+                    graph.DoubleWords[tuple] = new Dictionary<string, int>();
                 }
-                if (!wordListMap[tuple].ContainsKey(current))
+                if (!graph.DoubleWords[tuple].ContainsKey(current))
                 {
-                    wordListMap[tuple].Add(current, 0);
+                    graph.DoubleWords[tuple].Add(current, 0);
                 }
-                ++wordListMap[tuple][current];
+                ++graph.DoubleWords[tuple][current];
             }
         }
         void CreateTriplePrevsMap(string[] words)
@@ -102,15 +102,15 @@ namespace WordAutomationSharp
                 }
                 var triple = Tuple.Create(ppp, pp, p);
 
-                if (!tripleWords.ContainsKey(triple))
+                if (!graph.TripleWords.ContainsKey(triple))
                 {
-                    tripleWords[triple] = new Dictionary<string, int>();
+                    graph.TripleWords[triple] = new Dictionary<string, int>();
                 }
-                if (!tripleWords[triple].ContainsKey(current))
+                if (!graph.TripleWords[triple].ContainsKey(current))
                 {
-                    tripleWords[triple].Add(current, 0);
+                    graph.TripleWords[triple].Add(current, 0);
                 }
-                ++tripleWords[triple][current];
+                ++graph.TripleWords[triple][current];
             }
         }
         IEnumerable<string> GetCandidates(string[] words, int numCandidates)
@@ -141,13 +141,13 @@ namespace WordAutomationSharp
             }
 
             IEnumerable<string> sortedRights;
-            if (defaultLevel == 3 && tripleWords.ContainsKey(triple))
+            if (defaultLevel == 3 && graph.TripleWords.ContainsKey(triple))
             {
-                sortedRights = (from entry in tripleWords[triple].Keys orderby tripleWords[triple][entry] descending select entry).Take(numCandidates);
+                sortedRights = (from entry in graph.TripleWords[triple].Keys orderby graph.TripleWords[triple][entry] descending select entry).Take(numCandidates);
             }
-            else if (wordListMap.ContainsKey(tuple))
+            else if (graph.DoubleWords.ContainsKey(tuple))
             {
-                sortedRights = (from entry in wordListMap[tuple].Keys orderby wordListMap[tuple][entry] descending select entry).Take(numCandidates);
+                sortedRights = (from entry in graph.DoubleWords[tuple].Keys orderby graph.DoubleWords[tuple][entry] descending select entry).Take(numCandidates);
             }
             else
             {
@@ -169,7 +169,7 @@ namespace WordAutomationSharp
         private void ReadFile(string file){
             var t = new Thread(() =>{
                 var cfr = new SentenceFileReader(file);
-                this.graph = new WordGraph();
+                //this.graph = new WordGraph();
                 var str = "";
                 while (cfr.HasMore()){
                     progress.Dispatcher.Invoke(() => progress.Value = cfr.GetProgress());
@@ -193,17 +193,14 @@ namespace WordAutomationSharp
             t.Start();
         }
 
-        private void OutputTreeView_Loaded(object sender, RoutedEventArgs e){
-            ShowTree();
-        }
-
         private const int Threshold = 5;
 
         private List<TreeViewItem> treenodes = new List<TreeViewItem>(); 
         private void ShowTree(){
-            OutputTreeView.ItemsSource = null;
-            OutputTreeView.Items.Clear();
+            TreeViewOrder1.ItemsSource = null;
+            TreeViewOrder1.Items.Clear();
             treenodes.Clear();
+            return;
             var t = new Thread(() =>{
                 var nodes = this.graph.WordNodes.OrderBy(w => w.Key).ToList();
                 for(var i=0; i<nodes.Count; ++i){
@@ -235,7 +232,7 @@ namespace WordAutomationSharp
 
                 }
                 Dispatcher.Invoke(() =>{
-                    OutputTreeView.ItemsSource = treenodes;
+                    TreeViewOrder1.ItemsSource = treenodes;
                     progress.Value = 100.0;
                 });
             });
@@ -267,9 +264,9 @@ namespace WordAutomationSharp
         }
 
         private void Button_Click(object sender, RoutedEventArgs e){
-            var op = new OpenFileDialog();
-            op.Multiselect = false;
+            var op = new OpenFileDialog{Multiselect = false, Filter = "All files (*.*)|*.*"};
             op.ShowDialog(this);
+            if (op.FileName == "") return;
             ReadFile(op.FileName);
         }
 
@@ -279,6 +276,60 @@ namespace WordAutomationSharp
             {
                 defaultLevel = Int32.Parse((string)((ComboBoxItem)LevelComboBox.SelectedItem).Content);
             }
+        }
+
+        private void listBox1_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e) {
+            //load db
+            var op = new OpenFileDialog{Multiselect = false, Filter = "AMG databases (*.amg)|*.amg|All files (*.*)|*.*"};
+            op.ShowDialog();
+            if (op.FileName == "") return;
+            var xmlString = File.ReadAllText(op.FileName);
+            var serializer = new DataContractSerializer(typeof (WordGraph));
+            using (var sr = new StringReader(xmlString)){
+                using (var reader = new XmlTextReader(sr)){
+                    graph = (WordGraph)serializer.ReadObject(reader, true);
+                }
+            }
+            ShowTree();
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e){
+            //new db
+            var res = MessageBox.Show("Are you sure you want to create new database?", "New database", MessageBoxButton.YesNo);
+            if (res == MessageBoxResult.Yes){
+                graph.Clear();
+                ShowTree();
+            }
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e) {
+            //save db
+            var serializer = new DataContractSerializer(typeof (WordGraph));
+            string xmlString;
+            var save = new SaveFileDialog { OverwritePrompt = true, Filter = "AMG database (*.amg)|*.amg" };
+            save.ShowDialog(this);
+            if(save.FileName == "") return;
+            progress.IsIndeterminate = false;
+            progress.Value = 20;
+            var t = new Thread(() =>{
+                using (var sw = new StreamWriter(save.FileName)){
+                    using (var writer = new XmlTextWriter(sw)){
+                        writer.Formatting = Formatting.Indented;
+                        serializer.WriteObject(writer, graph);
+                        writer.Flush();
+                    }
+                }
+                Dispatcher.Invoke(() => { progress.IsIndeterminate = false; });
+            });
+            t.IsBackground = false;
+            t.Start();
+
+
+            //File.WriteAllText(save.FileName, xmlString);
         }
     }
 }
